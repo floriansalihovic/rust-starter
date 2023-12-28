@@ -1,0 +1,58 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "development" ]
+  pull_request:
+    branches: [ "development" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check-style:
+    name: Check code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check style
+        # see https://github.com/rust-lang/rustfmt#checking-style-on-a-ci-server
+        run: cargo fmt --all -- --check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint
+        # see https://github.com/rust-lang/rust-clippy#travis-ci
+        run: cargo clippy -- -D warnings
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build --verbose
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test
+        run: cargo test --verbose
+
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Generate code coverage
+        run: |
+          cargo tarpaulin --verbose --workspace
